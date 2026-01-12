@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passwortgenerator</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #2d3436;
+            --text-secondary: #636e72;
+            --accent: #0984e3;
+            --accent-hover: #74b9ff;
+            --border: #dfe6e9;
+            --input-bg: #f1f2f6;
+            --shadow: rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1e1e1e;
+            --card-bg: #2d2d2d;
+            --text-main: #dfe6e9;
+            --text-secondary: #b2bec3;
+            --accent: #74b9ff;
+            --accent-hover: #0984e3;
+            --border: #404040;
+            --input-bg: #353b48;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px var(--shadow);
+            width: 90%;
+            max-width: 420px;
+            position: relative;
+        }
+
+        /* Header & Icons */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        h2 { margin: 0; font-size: 1.5rem; font-weight: 700; }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .icon-btn:hover { background-color: var(--input-bg); }
+        .icon-btn svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* Passwort Anzeige */
+        .result-box {
+            background-color: var(--input-bg);
+            border: 2px solid var(--input-bg);
+            border-radius: 12px;
+            padding: 6px 6px 6px 15px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            transition: border-color 0.2s;
+        }
+        .result-box:focus-within { border-color: var(--accent); }
+
+        #password {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+            font-size: 1.1rem;
+            color: var(--accent);
+            font-weight: bold;
+            outline: none;
+            width: 100%;
+        }
+
+        /* Settings */
+        .settings { display: flex; flex-direction: column; gap: 12px; margin-bottom: 2rem; }
+        
+        .range-wrap { margin-bottom: 10px; }
+        .range-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; }
+        input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+
+        .option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .option:last-child { border-bottom: none; }
+        .option label { cursor: pointer; flex-grow: 1; }
+        
+        /* Custom Checkbox */
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .sub-text { font-size: 0.85rem; color: var(--text-secondary); display: block; margin-top: 2px; }
+
+        /* Main Button */
+        .generate-btn {
+            width: 100%;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .generate-btn:hover { background-color: var(--accent-hover); }
+        .generate-btn:active { transform: scale(0.98); }
+        .generate-btn svg { width: 20px; height: 20px; stroke: white; stroke-width: 2; fill: none; }
+
+    </style>
+</head>
+<body>
+
+ <!-- Config -->
+<div class="container">
+    <header>
+        <h2>Passwortgenerator</h2>
+        <button class="icon-btn" id="themeToggle" onclick="toggleTheme()" title="Design wechseln">
+            </button>
+    </header>
+    
+    <div class="result-box">
+        <input type="text" id="password" readonly placeholder="...">
+        <button class="icon-btn" id="copyBtn" onclick="copyPassword()" title="Kopieren">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        </button>
+    </div>
+
+    <div class="settings">
+        <div class="range-wrap">
+            <div class="range-label">
+                <span>Länge</span>
+                <span id="lengthVal">16</span>
+            </div>
+            <input type="range" id="length" min="12" max="32" value="16" oninput="syncLength()">
+        </div>
+        
+        <div class="option">
+            <label for="uppercase">Großbuchstaben (A-Z)</label>
+            <input type="checkbox" id="uppercase" checked>
+        </div>
+        <div class="option">
+            <label for="lowercase">Kleinbuchstaben (a-z)</label>
+            <input type="checkbox" id="lowercase" checked>
+        </div>
+        <div class="option">
+            <label for="numbers">Zahlen (0-9)</label>
+            <input type="checkbox" id="numbers" checked>
+        </div>
+        <div class="option">
+            <label for="symbols">Sonderzeichen (!@#)</label>
+            <input type="checkbox" id="symbols" checked>
+        </div>
+        <div class="option">
+            <label for="ambiguous">
+                Ähnliche ausschließen
+                <span class="sub-text">Kein I, l, 1, O, 0</span>
+            </label>
+            <input type="checkbox" id="ambiguous">
+        </div>
+    </div>
+
+    <button class="generate-btn" onclick="generatePassword()">
+        <svg viewBox="0 0 24 24"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        Neu generieren
+    </button>
+</div>
+
+<script>
+    /* SVG Icons als Strings für einfachen Wechsel */
+    const iconSun = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+    const iconMoon = '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+    const iconCheck = '<svg viewBox="0 0 24 24" style="stroke:#2ecc71"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+    const iconCopy = '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+
+    const htmlEl = document.documentElement;
+    const themeBtn = document.getElementById('themeToggle');
+    const slider = document.getElementById('length');
+    const displayLength = document.getElementById('lengthVal');
+
+    function syncLength() {
+        displayLength.innerText = slider.value;
+        generatePassword();
+    }
+
+    function generatePassword() {
+        const length = slider.value;
+        const hasUpper = document.getElementById('uppercase').checked;
+        const hasLower = document.getElementById('lowercase').checked;
+        const hasNumber = document.getElementById('numbers').checked;
+        const hasSymbol = document.getElementById('symbols').checked;
+        const excludeAmbiguous = document.getElementById('ambiguous').checked;
+
+        let chars = "";
+        if (hasUpper) chars += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        if (hasLower) chars += "abcdefghijklmnopqrstuvwxyz";
+        if (hasNumber) chars += "0123456789";
+        if (hasSymbol) chars += "!@#$%^&*()_+~`|}{[]:;?><,./-=";
+
+        // Filtere ähnliche Zeichen heraus, falls gewünscht
+        if (excludeAmbiguous) {
+            // Entfernt: I, l (kleines L), 1, | (Pipe), O, 0, o
+            chars = chars.replace(/[Il1|O0o]/g, '');
+        }
+
+        if (chars === "") {
+            document.getElementById('password').value = "";
+            return;
+        }
+
+        let password = "";
+        const array = new Uint32Array(length);
+        window.crypto.getRandomValues(array);
+
+        for (let i = 0; i < length; i++) {
+            password += chars[array[i] % chars.length];
+        }
+
+        document.getElementById('password').value = password;
+    }
+
+    function copyPassword() {
+        const passwordField = document.getElementById('password');
+        const btn = document.getElementById('copyBtn');
+        
+        if(!passwordField.value) return;
+
+        passwordField.select();
+        passwordField.setSelectionRange(0, 99999);
+
+        navigator.clipboard.writeText(passwordField.value).then(() => {
+            btn.innerHTML = iconCheck;
+            setTimeout(() => { btn.innerHTML = iconCopy; }, 1500);
+        });
+    }
+
+    function toggleTheme() {
+        const currentTheme = htmlEl.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        htmlEl.setAttribute('data-theme', newTheme);
+        themeBtn.innerHTML = newTheme === 'dark' ? iconSun : iconMoon;
+        localStorage.setItem('theme', newTheme);
+    }
+
+    // Initiale Konfiguration
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (savedTheme) {
+        htmlEl.setAttribute('data-theme', savedTheme);
+        themeBtn.innerHTML = savedTheme === 'dark' ? iconSun : iconMoon;
+    } else if (systemPrefersDark) {
+        htmlEl.setAttribute('data-theme', 'dark');
+        themeBtn.innerHTML = iconSun;
+    } else {
+        themeBtn.innerHTML = iconMoon;
+    }
+
+    generatePassword();
+</script>
+
+</body>
+</html>
